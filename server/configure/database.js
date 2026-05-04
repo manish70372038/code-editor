@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
-const MONGOURI = process.env.MONGO_URI || "mongodb://localhost:27017/RTCCE"
+const MONGOURI = process.env.MONGO_URL || "mongodb://localhost:27017/RTCCE"
 
 function databaseConnect() {
   mongoose
