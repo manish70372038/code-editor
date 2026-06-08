@@ -18,15 +18,15 @@ jobs:
           node-version: "18"
 
       - name: Install client dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
         working-directory: ./client
 
       - name: Build client
         run: npm run build
         working-directory: ./client
         env:
-          CI: false          # ← yahi fix hai
+          CI: false
 
       - name: Install server dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
         working-directory: ./server
