@@ -13,7 +13,117 @@ import "../Styles/AuthForm.css";
 import NotificationBox from "./Notice";
 import { useSocket } from "../Context/SocketContetx";
 
-const InputBox = ({ heading, value, setinput ,isrunning }) => {
+// ✅ Password Modal — link generate hone ke baad password dikhata hai
+const PasswordModal = ({ link, password, onClose }) => {
+  const [copied, setCopied] = useState(false);
+  const [copiedPass, setCopiedPass] = useState(false);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyPassword = () => {
+    navigator.clipboard.writeText(password);
+    setCopiedPass(true);
+    setTimeout(() => setCopiedPass(false), 2000);
+  };
+
+  return (
+    <div style={modalStyles.overlay}>
+      <div style={modalStyles.box}>
+        <h2 style={{ marginBottom: "10px", color: "#fff" }}>🔗 Live Link Generated!</h2>
+        <p style={{ color: "#aaa", marginBottom: "16px", fontSize: "13px" }}>
+          Share this link and password with your collaborator.
+        </p>
+
+        <div style={modalStyles.field}>
+          <label style={modalStyles.label}>Link</label>
+          <div style={modalStyles.row}>
+            <input style={modalStyles.input} readOnly value={link} />
+            <button style={modalStyles.btn} onClick={copyLink}>
+              {copied ? "✅ Copied" : "Copy"}
+            </button>
+          </div>
+        </div>
+
+        <div style={modalStyles.field}>
+          <label style={modalStyles.label}>Password (Enter Code)</label>
+          <div style={modalStyles.row}>
+            <input style={modalStyles.input} readOnly value={password} />
+            <button style={modalStyles.btn} onClick={copyPassword}>
+              {copiedPass ? "✅ Copied" : "Copy"}
+            </button>
+          </div>
+        </div>
+
+        <p style={{ color: "#f0a500", fontSize: "12px", marginTop: "10px" }}>
+          ⚠️ Save this password — it won't be shown again!
+        </p>
+
+        <button style={modalStyles.closeBtn} onClick={onClose}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const modalStyles = {
+  overlay: {
+    position: "fixed",
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: "rgba(0,0,0,0.75)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 999999,
+  },
+  box: {
+    background: "#1e1e1e",
+    border: "1px solid #444",
+    borderRadius: "10px",
+    padding: "30px",
+    width: "480px",
+    maxWidth: "90%",
+  },
+  field: { marginBottom: "14px" },
+  label: { color: "#ccc", fontSize: "13px", display: "block", marginBottom: "6px" },
+  row: { display: "flex", gap: "8px" },
+  input: {
+    flex: 1,
+    background: "#2d2d2d",
+    border: "1px solid #555",
+    borderRadius: "5px",
+    color: "#fff",
+    padding: "8px 10px",
+    fontSize: "13px",
+    fontFamily: "monospace",
+  },
+  btn: {
+    background: "#0078d4",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    padding: "8px 14px",
+    cursor: "pointer",
+    fontSize: "13px",
+  },
+  closeBtn: {
+    marginTop: "16px",
+    width: "100%",
+    background: "#333",
+    color: "#fff",
+    border: "1px solid #555",
+    borderRadius: "5px",
+    padding: "10px",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+};
+
+const InputBox = ({ heading, value, setinput, isrunning }) => {
   const handleInput = (e) => {
     e.preventDefault();
     setinput(e.target.textContent);
@@ -42,7 +152,7 @@ const InputBox = ({ heading, value, setinput ,isrunning }) => {
           border: "1px solid grey",
           color: "white",
           display: "flex",
-          overflow:"auto",
+          overflow: "auto",
           flexDirection: "column",
         }}
       >
@@ -68,12 +178,14 @@ const InputBox = ({ heading, value, setinput ,isrunning }) => {
           {value}
           {heading === "Input Box" ? (
             ""
-          ) : ( isrunning &&
-            <> 
-              <div style={styles.loaderContainer}>
-                <PulseLoader color="white" size={10} />
-              </div>
-            </>
+          ) : (
+            isrunning && (
+              <>
+                <div style={styles.loaderContainer}>
+                  <PulseLoader color="white" size={10} />
+                </div>
+              </>
+            )
           )}
         </p>
 
@@ -81,7 +193,7 @@ const InputBox = ({ heading, value, setinput ,isrunning }) => {
           width={size.width}
           height={size.height}
           onResize={onResize}
-          resizeHandles={["se"]} 
+          resizeHandles={["se"]}
         >
           <div style={{ width: "100%", height: "100%" }} />
         </Resizable>
@@ -90,7 +202,7 @@ const InputBox = ({ heading, value, setinput ,isrunning }) => {
   );
 };
 
-const Authbox = ({ setname, programid, setisValid, setcontent ,setlanguage,setLangCode}) => {
+const Authbox = ({ setname, programid, setisValid, setcontent, setlanguage, setLangCode }) => {
   const [error, seterror] = useState("");
   const [data, setdata] = useState({
     userName: "",
@@ -108,15 +220,17 @@ const Authbox = ({ setname, programid, setisValid, setcontent ,setlanguage,setLa
     );
     if (response.success) {
       setcontent(response.data.code);
-      const lang = monacoFormatLang.find(val=>(val.extension === response.data.extension));
-      if(!lang) alert("the extention of this file not allowed")
-      setlanguage(lang.name)
+      const lang = monacoFormatLang.find(
+        (val) => val.extension === response.data.extension
+      );
+      if (!lang) alert("the extention of this file not allowed");
+      setlanguage(lang.name);
       const existingData = JSON.parse(sessionStorage.getItem(programid)) || {};
       existingData.isValid = true;
       existingData.content = response.data.code;
       existingData.name = data.userName;
       existingData.language = lang;
-      setLangCode(lang.id)
+      setLangCode(lang.id);
       sessionStorage.setItem(programid, JSON.stringify(existingData));
       setname(data.userName);
       setisValid(true);
@@ -132,7 +246,7 @@ const Authbox = ({ setname, programid, setisValid, setcontent ,setlanguage,setLa
       <Navbar />
       <div style={{ borderRadius: "0px" }} className="form-container">
         <h2 className="form-title">Validate First</h2>
-        <p className="form-description">Enter Enter correct code</p>
+        <p className="form-description">Enter correct code</p>
         <form onSubmit={handlesubmit} className="form">
           <input
             type="text"
@@ -144,7 +258,7 @@ const Authbox = ({ setname, programid, setisValid, setcontent ,setlanguage,setLa
 
           <input
             type="password"
-            placeholder="Enter code "
+            placeholder="Enter code"
             required
             className="input"
             onChange={(e) => setdata({ ...data, Code: e.target.value })}
@@ -178,11 +292,9 @@ const LiveEditor = () => {
   });
 
   const [content, setcontent] = useState(parsedData.content ?? "");
-
   const [isable, setisable] = useState(parsedData.isable ?? false);
   const [isValid, setisValid] = useState(parsedData.isValid ?? false);
   const [isChecked, setisChecked] = useState(false);
-
   const [isrunning, setisrunning] = useState(false);
   const [input, setinput] = useState("");
   const [isviewinput, setisviewinput] = useState(false);
@@ -190,11 +302,13 @@ const LiveEditor = () => {
   const [output, setoutput] = useState("output will be shown here");
   const [theme, settheme] = useState(localStorage.getItem("theme") || "vs");
   const [language, setlanguage] = useState(parsedData.language?.name || "");
-
   const [languages, setlanguages] = useState(monacoFormatLang);
-
   const [langCode, setLangCode] = useState(parsedData.language?.id || 0);
 
+  // ✅ Password Modal State
+  const [showModal, setshowModal] = useState(false);
+  const [generatedLink, setgeneratedLink] = useState("");
+  const [generatedPassword, setgeneratedPassword] = useState("");
 
   const handleselectchange = (e) => {
     const selectedOption = e.target.options[e.target.selectedIndex];
@@ -204,6 +318,7 @@ const LiveEditor = () => {
   };
 
   const socket = useSocket();
+
   useEffect(() => {
     socket.on("say-hello", (data) => {
       alert(`${data.name} has joined the room`);
@@ -211,7 +326,6 @@ const LiveEditor = () => {
 
     socket.on("get-text", (data) => {
       setcontent(data.value);
-
     });
 
     return () => {
@@ -221,7 +335,6 @@ const LiveEditor = () => {
   }, [socket]);
 
   const ckecklink = async () => {
-
     const response = await program.checklink(
       "/link-validation",
       programid,
@@ -230,7 +343,6 @@ const LiveEditor = () => {
     if (response.success) {
       if (!response.expired) {
         setextime(response.time);
-
         setisable(true);
         const existingData =
           JSON.parse(sessionStorage.getItem(programid)) || {};
@@ -255,11 +367,10 @@ const LiveEditor = () => {
     });
 
     setisable(false);
-
   };
 
   useEffect(() => {
-     ckecklink();
+    ckecklink();
   }, []);
 
   useEffect(() => {
@@ -287,10 +398,32 @@ const LiveEditor = () => {
         });
       }, extime - currenttime);
     }
-  }, [extime,programid]);
+  }, [extime, programid]);
+
+  // ✅ Generate Link function — password modal dikhata hai
+  const handleGenerateLink = async () => {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const response = await program.getlink("/live-editor", programid, token);
+    if (response.success) {
+      setgeneratedLink(response.link);
+      setgeneratedPassword(response.password);
+      setshowModal(true);
+    } else {
+      alert("Failed to generate link: " + response.message);
+    }
+  };
 
   return (
     <>
+      {/* ✅ Password Modal */}
+      {showModal && (
+        <PasswordModal
+          link={generatedLink}
+          password={generatedPassword}
+          onClose={() => setshowModal(false)}
+        />
+      )}
+
       {isable ? (
         isValid ? (
           <div style={{ width: "100%", height: "100%", display: "flex" }}>
@@ -301,12 +434,21 @@ const LiveEditor = () => {
                   <strong style={{ color: "tomato" }}>code_EDITOR</strong>
                 </span>
                 <ul className="inner-nav-list">
+                  {/* ✅ Generate Link Button */}
+                  <button
+                    className="run-button"
+                    style={{ background: "#0078d4", marginRight: "6px" }}
+                    onClick={handleGenerateLink}
+                  >
+                    🔗 Get Password
+                  </button>
+
                   <button
                     className="run-button"
                     onClick={async (e) => {
                       e.preventDefault();
                       setisviewoutput(true);
-                      setoutput('');
+                      setoutput("");
                       if (!language || !content) {
                         alert(
                           "please select language or check your content not be empty"
@@ -339,7 +481,6 @@ const LiveEditor = () => {
                       checked={isChecked}
                       onChange={(e) => {
                         setisChecked(e.target.checked);
-
                         if (e.target.checked) {
                           socket.emit("join-room", { programid, name });
                         } else {
@@ -413,14 +554,14 @@ const LiveEditor = () => {
                 </ul>
               </div>
               {isviewinput && (
-                <InputBox
-                  heading={"Input Box"}
-                  value={""}
-                  setinput={setinput}
-                />
+                <InputBox heading={"Input Box"} value={""} setinput={setinput} />
               )}
               {isviewoutput && (
-                <InputBox heading={"Output Box"} value={output} isrunning={isrunning} />
+                <InputBox
+                  heading={"Output Box"}
+                  value={output}
+                  isrunning={isrunning}
+                />
               )}
               <div
                 style={{
@@ -447,8 +588,8 @@ const LiveEditor = () => {
           </div>
         ) : (
           <Authbox
-          setLangCode={setLangCode}
-          setlanguage={setlanguage}
+            setLangCode={setLangCode}
+            setlanguage={setlanguage}
             programid={programid}
             setisValid={setisValid}
             setcontent={setcontent}
@@ -465,6 +606,7 @@ const LiveEditor = () => {
     </>
   );
 };
+
 const styles = {
   loaderContainer: {
     display: "flex",
